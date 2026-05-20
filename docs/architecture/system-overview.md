@@ -61,7 +61,24 @@ The system treats data as code, allowing the community to contribute directly vi
 
 ---
 
-## 5. UI/UX Philosophy
+## 5. Software Design Patterns
+
+To maintain a clean separation of concerns, scalability, and code testability, the project implements several core design patterns:
+
+### 5.1 Backend Patterns (Spring Boot)
+* **Controller-Service-Repository (Layered Architecture):** Decouples request handling (Controller), business rules (Service), and database queries (Repository).
+* **Repository Pattern:** Implemented via Spring Data JPA to abstract database interactions and keep the service layer clean of SQL/persistence details.
+* **Data Transfer Object (DTO):** Standardizes API contracts by transforming internal database entities into specific response formats (e.g., node-and-link payloads for the graph canvas) before returning them to the frontend.
+* **Strategy Pattern:** Utilized in the data validation and graph mapping layers to dynamically apply parsing or formatting rules depending on the connection type (`INFLUENCED_BY`, `FORKED_FROM`, `RUNS_ON`).
+
+### 5.2 Frontend Patterns (Next.js/React)
+* **Component-Based Architecture:** The user interface is composed of modular, self-contained components (e.g., specific graph visualizers, dialog modals, search capsules).
+* **Container-Presenter Pattern:** Separates logical wrapper components (responsible for fetching, searching, and filtering graph dataset state) from presentation components (responsible for layout styling, backdrop filters, and animation rendering).
+* **React Context & State Hooks:** Centralizes key UI states (e.g., active node selection, modal open/close states) to avoid deep prop-drilling across the force-directed canvas layout.
+
+---
+
+## 6. UI/UX Philosophy
 
 The interface is inspired by Apple's design language, prioritizing:
 - **Depth:** Layered transparency and background blurs.
