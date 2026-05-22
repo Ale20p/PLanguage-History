@@ -1,0 +1,24 @@
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: planguage-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: planguage_history
+      POSTGRES_USER: planguage_admin
+      POSTGRES_PASSWORD: planguage_dev_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docs/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./docs/database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planguage_admin -d planguage_history"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
