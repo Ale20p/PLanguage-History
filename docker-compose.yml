@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: planguage_admin
       POSTGRES_PASSWORD: planguage_dev_2026
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docs/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
