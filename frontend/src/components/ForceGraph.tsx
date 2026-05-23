@@ -50,18 +50,32 @@ function drawNode(
   const labelOffset = radius + 4 / globalScale;
 
   ctx.save();
+
+  // Soft colored glow behind the node
   ctx.shadowColor = color;
-  ctx.shadowBlur = isActive ? 24 : 12;
-  ctx.fillStyle = color;
+  ctx.shadowBlur = isActive ? 18 : 8;
+
+  // Thin colored border — the crystal outline
+  ctx.lineWidth = isActive ? 1.2 : 0.8;
+  ctx.strokeStyle = isActive ? color : `${color}aa`;
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-  ctx.fill();
-
-  ctx.lineWidth = 1.5 / globalScale;
-  ctx.strokeStyle = isActive ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.42)";
   ctx.stroke();
 
+  // Clear shadow for inner details
+  ctx.shadowColor = "transparent";
   ctx.shadowBlur = 0;
+
+  // Crystal refraction — faint white arc along the top edge
+  ctx.lineWidth = 0.6;
+  ctx.strokeStyle = isActive
+    ? "rgba(255, 255, 255, 0.30)"
+    : "rgba(255, 255, 255, 0.15)";
+  ctx.beginPath();
+  ctx.arc(x, y, radius - 1, -Math.PI * 0.85, -Math.PI * 0.15, false);
+  ctx.stroke();
+
+  // Label
   ctx.font = `600 ${fontSize}px Inter, Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
