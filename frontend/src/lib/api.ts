@@ -1,0 +1,71 @@
+import type {
+  GraphFilters,
+  GraphResponse,
+  LanguageDetail,
+  LanguageSummary,
+} from "@/types";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081/api/v1";
+
+class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      Accept: "application/json",
+      ...init?.headers,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new ApiError(
+      `Request to ${path} failed with status ${response.status}`,
+      response.status,
+    );
+  }
+
+  return response.json() as Promise<T>;
+}
+
+export function getGraph() {
+  return request<GraphResponse>("/graph");
+}
+
+export function getLanguageDetail(id: string) {
+  return request<LanguageDetail>(`/languages/${encodeURIComponent(id)}`);
+}
+
+export function searchLanguages(filters: GraphFilters) {
+  const params = new URLSearchParams();
+
+  if (filters.query.trim()) {
+    params.set("q", filters.query.trim());
+  }
+
+  if (filters.paradigm) {
+    params.set("paradigm", filters.paradigm);
+  }
+
+  if (filters.era) {
+    params.set("era", filters.era);
+  }
+
+  const query = params.toString();
+
+  return request<LanguageSummary[]>(`/languages/search${query ? `?${query}` : ""}`);
+}
+
+export function isApiError(error: unknown): error is ApiError {
+  return error instanceof ApiError;
+}
