@@ -25,7 +25,7 @@ function GraphStatusOverlay() {
               Start the backend on port 8081, then retry the graph request.
             </p>
             {error ? (
-              <p className="mt-3 rounded-xl border border-red-300/20 bg-red-500/10 px-3 py-2 text-xs text-red-100">
+              <p className="mt-3 rounded-xl border border-red-300/20 bg-transparent px-3 py-2 text-xs text-red-100">
                 {error}
               </p>
             ) : null}

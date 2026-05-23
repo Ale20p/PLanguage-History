@@ -37,7 +37,7 @@ Our goal is to build a "digital museum" where the community can explore how prog
 
 ## 💎 UI/UX Philosophy
 
-The interface is inspired by high-end, modern design aesthetics, featuring a "Liquid Glass" look. Key elements include `backdrop-blur`, subtle transparency, vibrant accent colors for nodes, and fluid transitions. The UI is built to feel modern, lightweight, and professional.
+The interface is inspired by a literal see-through aesthetic, featuring a "Clear Glass" look. Key elements include complete transparency, thin white border refractions (`border-white/10`), vibrant accent colors for nodes, and fluid transitions. The UI is built to feel modern, lightweight, and completely transparent, eschewing any frosted or blurred backgrounds.
 
 ## 🤝 How to Contribute
 

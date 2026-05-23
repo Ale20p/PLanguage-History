@@ -1,13 +1,13 @@
-# Design Specification: "Liquid Glass" Theme
+# Design Specification: "Clear Glass" Theme
 
-This document defines the "Liquid Glass" design system, UI guidelines, and styling tokens for the Programming Language Genealogy & Evolution platform. The visual aesthetic is inspired by Apple's high-end glassmorphism interfaces: highly interactive, premium, lightweight, and modern.
+This document defines the "Clear Glass" design system, UI guidelines, and styling tokens for the Programming Language Genealogy & Evolution platform. The visual aesthetic is a literal see-through interface: highly interactive, completely transparent, lightweight, and modern.
 
 ---
 
 ## 1. Design Concept & Philosophy
 
-The "Liquid Glass" aesthetic relies on layers, depth, light, and motion. 
-* **Depth:** Use multiple transparent layers with varying levels of `backdrop-blur` and drop shadows to establish visual hierarchy.
+The "Clear Glass" aesthetic relies on layers, depth, light, and motion without frosted effects. 
+* **Depth:** Use multiple completely transparent layers with drop shadows to establish visual hierarchy. Avoid any `backdrop-blur` completely.
 * **Light:** Emulate light refraction using thin, semi-transparent white borders (`border-white/10`) to simulate the edges of glass plates.
 * **Vibrancy:** Introduce subtle colored backdrops (blobs) behind the glass panels to create soft, colorful refractions.
 * **Motion:** Interaction should feel natural and fluid, using spring-based physics instead of linear easing curves.
@@ -42,18 +42,18 @@ To help users categorize languages visually in the force-directed graph, nodes a
 
 ## 3. Tailwind CSS Configurations
 
-To implement the Liquid Glass theme, apply the following Tailwind configuration and custom utility classes.
+To implement the Clear Glass theme, apply the following Tailwind configuration and custom utility classes.
 
 ### 3.1 Class Combinations
 * **Standard Glass Panel:**
   ```html
-  <div class="bg-slate-900/45 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl">
+  <div class="bg-transparent border border-white/10 shadow-2xl rounded-2xl">
     <!-- Panel Content -->
   </div>
   ```
 * **High-Contrast Glass Panel (for Modals):**
   ```html
-  <div class="bg-slate-950/75 backdrop-blur-xl border border-white/15 shadow-2xl rounded-3xl">
+  <div class="bg-transparent border border-white/15 shadow-2xl rounded-3xl">
     <!-- Modal Content -->
   </div>
   ```
@@ -73,7 +73,7 @@ To implement the Liquid Glass theme, apply the following Tailwind configuration 
 * **Layout:** Centered pop-up, split layout:
   * **Left Pane (40%):** Static language details (Name, Creators, Paradigm tags, Release Date, Website link).
   * **Right Pane (60%):** Rich content (Markdown description and a syntax-highlighted code snippet box).
-* **Backdrop Overlay:** Full-screen overlay `bg-black/40 backdrop-blur-sm`.
+* **Backdrop Overlay:** Full-screen overlay `bg-black/80` without any blur.
 
 ---
 

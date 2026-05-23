@@ -92,7 +92,7 @@ export function LanguageModal() {
     <AnimatePresence>
       {isOpen ? (
         <motion.div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
