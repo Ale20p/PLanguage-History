@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 /**
  * DTO representing a single node in the force-directed graph.
  * Optimized for react-force-graph-2d consumption.
@@ -16,4 +18,5 @@ public class NodeDTO {
     private String name;
     private String group;   // Primary paradigm used for color-coding
     private int year;       // Release year extracted from releaseDate
+    private LocalDate releaseDate;
 }

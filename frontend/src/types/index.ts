@@ -5,6 +5,7 @@ export interface LanguageGraphNode {
   name: string;
   group: string;
   year: number;
+  releaseDate?: string;
   x?: number;
   y?: number;
   vx?: number;

@@ -60,7 +60,8 @@ public class GraphService {
                 language.getId(),
                 language.getName(),
                 group,
-                language.getReleaseDate().getYear()
+                language.getReleaseDate().getYear(),
+                language.getReleaseDate()
         );
     }
 
