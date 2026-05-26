@@ -46,7 +46,9 @@ const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
 }) as ForceGraphComponent;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const MAX_TIMELINE_TICKS = 7;
+const TIMELINE_YEAR_STEP = 5;
+const BASE_TIMELINE_STEP_SPACING = 92;
+const LABEL_FONT_SIZE = 13;
 const RELEASE_DATE_FORMATTER = new Intl.DateTimeFormat("en", {
   day: "numeric",
   month: "short",
@@ -84,37 +86,65 @@ function formatReleaseDate(node: LanguageGraphNode) {
   return RELEASE_DATE_FORMATTER.format(new Date(parsed));
 }
 
-function buildTimelineYears(minYear: number, maxYear: number) {
-  if (minYear === maxYear) {
-    return [minYear];
+function getTimelineBounds(minYear: number, maxYear: number) {
+  const startYear =
+    Math.floor(minYear / TIMELINE_YEAR_STEP) * TIMELINE_YEAR_STEP;
+  let endYear =
+    Math.ceil((maxYear + 1) / TIMELINE_YEAR_STEP) * TIMELINE_YEAR_STEP;
+
+  if (endYear <= startYear) {
+    endYear = startYear + TIMELINE_YEAR_STEP;
   }
 
-  const span = maxYear - minYear;
-  const step = span <= 8 ? 1 : span > 80 ? 20 : 10;
-  const years = new Set([minYear, maxYear]);
+  return { endYear, startYear };
+}
 
-  for (let year = Math.ceil(minYear / step) * step; year <= maxYear; year += step) {
-    years.add(year);
+function buildTimelineYears(startYear: number, endYear: number) {
+  const years: number[] = [];
+
+  for (let year = startYear; year <= endYear; year += TIMELINE_YEAR_STEP) {
+    years.push(year);
   }
 
-  const sortedYears = Array.from(years).sort((a, b) => a - b);
+  return years;
+}
 
-  if (sortedYears.length <= MAX_TIMELINE_TICKS) {
-    return sortedYears;
-  }
+function getTimelineLaneCount(width: number) {
+  return width < 640 ? 3 : 5;
+}
 
-  const first = sortedYears[0];
-  const last = sortedYears[sortedYears.length - 1];
-  const interior = sortedYears.slice(1, -1);
-  const keepEvery = Math.ceil(interior.length / (MAX_TIMELINE_TICKS - 2));
+function estimateNodeLabelWidth(label: string) {
+  return Math.max(46, label.length * LABEL_FONT_SIZE * 0.58 + 28);
+}
 
-  return [
-    first,
-    ...interior
-      .filter((_, index) => index % keepEvery === 0)
-      .slice(0, MAX_TIMELINE_TICKS - 2),
-    last,
-  ];
+function getTimelineLaneWidth(nodes: LanguageGraphNode[], width: number) {
+  const baseLaneWidth = width < 640 ? 68 : 94;
+  const maxLaneWidth = width < 640 ? 86 : 128;
+  const widestLabel = Math.max(
+    baseLaneWidth,
+    ...nodes.map((node) => estimateNodeLabelWidth(node.name)),
+  );
+
+  return Math.min(maxLaneWidth, widestLabel);
+}
+
+function getAdaptiveTimelineStepSpacing(
+  datedNodes: { time: number }[],
+  startYear: number,
+  laneCount: number,
+) {
+  const bucketCounts = new Map<number, number>();
+
+  datedNodes.forEach(({ time }) => {
+    const year = new Date(time).getUTCFullYear();
+    const bucket = Math.floor((year - startYear) / TIMELINE_YEAR_STEP);
+    bucketCounts.set(bucket, (bucketCounts.get(bucket) ?? 0) + 1);
+  });
+
+  const densestBucketCount = Math.max(1, ...bucketCounts.values());
+  const rowsNeeded = Math.max(1, Math.ceil(densestBucketCount / laneCount));
+
+  return BASE_TIMELINE_STEP_SPACING * rowsNeeded;
 }
 
 function centeredLaneOffset(value: string, laneCount: number, laneWidth: number) {
@@ -132,18 +162,14 @@ function buildTimelineLayout(
   size: { width: number; height: number },
 ): TimelineLayout {
   const topPadding = size.height < 460 ? 28 : 42;
-  const bottomPadding = size.height < 460 ? 42 : 64;
-  const axisTop = topPadding;
-  const axisBottom = Math.max(axisTop + 180, size.height - bottomPadding);
-  const axisTopGraphY = axisTop - size.height / 2;
-  const axisBottomGraphY = axisBottom - size.height / 2;
   const railLeft = size.width < 640 ? 34 : 54;
   const targetScreenX = Math.max(railLeft + 178, size.width * 0.54);
   const targetGraphX = targetScreenX - size.width / 2;
+  const axisTopGraphY = topPadding - size.height / 2;
 
   if (nodes.length === 0) {
     return {
-      axisBottomGraphY,
+      axisBottomGraphY: axisTopGraphY,
       axisTopGraphY,
       nodePositions: new Map(),
       railLeft,
@@ -161,13 +187,22 @@ function buildTimelineLayout(
 
   const minTime = datedNodes[0].time;
   const maxTime = datedNodes[datedNodes.length - 1].time;
-  const timeSpan = Math.max(DAY_MS, maxTime - minTime);
-  const axisHeight = axisBottom - axisTop;
-  const timeToScreenY = (time: number) =>
-    nodes.length === 1
-      ? axisTop + axisHeight / 2
-      : axisTop + ((time - minTime) / timeSpan) * axisHeight;
-  const timeToGraphY = (time: number) => timeToScreenY(time) - size.height / 2;
+  const minYear = new Date(minTime).getUTCFullYear();
+  const maxYear = new Date(maxTime).getUTCFullYear();
+  const { endYear, startYear } = getTimelineBounds(minYear, maxYear);
+  const stepSpacing = getAdaptiveTimelineStepSpacing(
+    datedNodes,
+    startYear,
+    getTimelineLaneCount(size.width),
+  );
+  const timelineHeight =
+    ((endYear - startYear) / TIMELINE_YEAR_STEP) * stepSpacing;
+  const axisBottomGraphY = axisTopGraphY + timelineHeight;
+  const startTime = Date.UTC(startYear, 0, 1);
+  const endTime = Date.UTC(endYear, 0, 1);
+  const timeSpan = Math.max(DAY_MS, endTime - startTime);
+  const timeToGraphY = (time: number) =>
+    axisTopGraphY + ((time - startTime) / timeSpan) * timelineHeight;
 
   const nodePositions = new Map<string, TimelinePosition>();
   datedNodes.forEach(({ node, time }) => {
@@ -176,15 +211,10 @@ function buildTimelineLayout(
     });
   });
 
-  const minYear = new Date(minTime).getUTCFullYear();
-  const maxYear = new Date(maxTime).getUTCFullYear();
-  const ticks = buildTimelineYears(minYear, maxYear).map((year) => {
-    const tickTime =
-      year === minYear ? minTime : year === maxYear ? maxTime : Date.UTC(year, 0, 1);
-
+  const ticks = buildTimelineYears(startYear, endYear).map((year) => {
     return {
       label: String(year),
-      graphY: timeToGraphY(tickTime),
+      graphY: timeToGraphY(Date.UTC(year, 0, 1)),
     };
   });
 
@@ -368,8 +398,8 @@ export function ForceGraph() {
   );
 
   const timelineGraph = useMemo(() => {
-    const laneCount = size.width < 640 ? 3 : 5;
-    const laneWidth = size.width < 640 ? 44 : 62;
+    const laneCount = getTimelineLaneCount(size.width);
+    const laneWidth = getTimelineLaneWidth(filteredGraph.nodes, size.width);
 
     return {
       nodes: filteredGraph.nodes.map((node) => {
@@ -380,6 +410,7 @@ export function ForceGraph() {
 
         return {
           ...node,
+          fx: timelineX,
           fy: position?.graphY,
           timelineX,
           x: timelineX,
