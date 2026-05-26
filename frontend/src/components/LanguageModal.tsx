@@ -58,7 +58,7 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
         {items.map((item) => (
           <span
             key={item}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-200"
+            className="rounded-full border border-black/10 bg-white/20 px-3 py-1 text-xs text-slate-700"
           >
             {item}
           </span>
@@ -92,7 +92,7 @@ export function LanguageModal() {
     <AnimatePresence>
       {isOpen ? (
         <motion.div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -108,7 +108,7 @@ export function LanguageModal() {
           >
             {detailStatus === "loading" ? (
               <div className="col-span-full flex min-h-80 items-center justify-center p-8">
-                <div className="glass-panel px-5 py-4 text-sm text-slate-200">
+                <div className="glass-panel px-5 py-4 text-sm text-slate-700">
                   Loading language details...
                 </div>
               </div>
@@ -116,7 +116,7 @@ export function LanguageModal() {
 
             {detailStatus === "error" ? (
               <div className="col-span-full flex min-h-80 flex-col items-center justify-center gap-4 p-8 text-center">
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-slate-800">
                   Language details could not be loaded.
                 </p>
                 <button type="button" className="liquid-button" onClick={closeLanguage}>
@@ -127,13 +127,13 @@ export function LanguageModal() {
 
             {selectedLanguage ? (
               <>
-                <aside className="border-b border-white/10 p-6 lg:border-b-0 lg:border-r">
+                <aside className="border-b border-black/10 p-6 lg:border-b-0 lg:border-r">
                   <div className="mb-6 flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-sm text-cyan-200/75">
+                      <p className="text-sm text-cyan-700/75">
                         Released {selectedLanguage.year}
                       </p>
-                      <h2 className="mt-1 text-3xl font-semibold text-white">
+                      <h2 className="mt-1 text-3xl font-semibold text-slate-800">
                         {selectedLanguage.name}
                       </h2>
                     </div>
@@ -153,7 +153,7 @@ export function LanguageModal() {
                       <dt className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Release Date
                       </dt>
-                      <dd className="text-slate-100">
+                      <dd className="text-slate-700">
                         {formatReleaseDate(selectedLanguage.releaseDate)}
                       </dd>
                     </div>
@@ -177,7 +177,7 @@ export function LanguageModal() {
                           href={selectedLanguage.website}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-sm font-medium text-cyan-200 underline decoration-cyan-200/30 underline-offset-4 transition hover:text-white"
+                          className="text-sm font-medium text-cyan-700 underline decoration-cyan-700/30 underline-offset-4 transition hover:text-cyan-900"
                         >
                           Official website
                         </a>
@@ -192,7 +192,7 @@ export function LanguageModal() {
                       <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Background
                       </h3>
-                      <p className="text-sm leading-7 text-slate-200">
+                      <p className="text-sm leading-7 text-slate-700">
                         {selectedLanguage.description}
                       </p>
                     </div>

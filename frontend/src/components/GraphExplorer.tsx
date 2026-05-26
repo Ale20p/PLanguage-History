@@ -18,14 +18,14 @@ function GraphStatusOverlay() {
       <div className="glass-panel pointer-events-auto max-w-md px-5 py-4 text-center">
         {status === "error" ? (
           <>
-            <p className="text-base font-semibold text-white">
+            <p className="text-base font-semibold text-slate-800">
               Could not reach the Spring Boot API.
             </p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
+            <p className="mt-2 text-sm leading-6 text-slate-600">
               Start the backend on port 8081, then retry the graph request.
             </p>
             {error ? (
-              <p className="mt-3 rounded-xl border border-red-300/20 bg-transparent px-3 py-2 text-xs text-red-100">
+              <p className="mt-3 rounded-xl border border-red-300/30 bg-transparent px-3 py-2 text-xs text-red-700">
                 {error}
               </p>
             ) : null}
@@ -38,7 +38,7 @@ function GraphStatusOverlay() {
             </button>
           </>
         ) : (
-          <p className="text-sm font-medium text-slate-100">Loading graph...</p>
+          <p className="text-sm font-medium text-slate-700">Loading graph...</p>
         )}
       </div>
     </div>
@@ -47,8 +47,7 @@ function GraphStatusOverlay() {
 
 function ExplorerCanvas() {
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-app text-white">
-      <div className="graph-grid" aria-hidden="true" />
+    <main className="relative min-h-dvh overflow-hidden bg-app text-slate-800">
       <Header />
       <SearchBar />
       <ForceGraph />

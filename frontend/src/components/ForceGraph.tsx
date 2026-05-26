@@ -79,7 +79,7 @@ function drawNode(
   ctx.font = `600 ${fontSize}px Inter, Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillStyle = isActive ? "rgba(255,255,255,0.96)" : "rgba(226,232,240,0.82)";
+  ctx.fillStyle = isActive ? "rgba(15,23,42,0.9)" : "rgba(51,65,85,0.8)";
   ctx.fillText(label, x, y + labelOffset);
   ctx.restore();
 }
