@@ -1,5 +1,6 @@
 Project-Context.md
 backend/*.log
+backend/target/
 frontend/*.log
 frontend/.next/
 frontend/node_modules/

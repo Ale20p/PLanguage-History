@@ -19,10 +19,10 @@ function GraphStatusOverlay() {
         {status === "error" ? (
           <>
             <p className="text-base font-semibold text-slate-800">
-              Could not reach the Spring Boot API.
+              Could not load the language graph.
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Start the backend on port 8081, then retry the graph request.
+              Check the configured API URL, then retry the graph request.
             </p>
             {error ? (
               <p className="mt-3 rounded-xl border border-red-300/30 bg-transparent px-3 py-2 text-xs text-red-700">
