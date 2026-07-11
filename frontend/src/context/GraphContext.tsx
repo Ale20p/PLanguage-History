@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { getGraph, getLanguageDetail, searchLanguages } from "@/lib/api";
+import { getGraph, getLanguageDetail, searchLanguages, updateLanguage } from "@/lib/api";
 import type {
   GraphFilters,
   GraphResponse,
@@ -38,6 +38,7 @@ interface GraphContextValue {
   closeLanguage: () => void;
   resetFilters: () => void;
   reloadGraph: () => Promise<void>;
+  updateLanguage: (id: string, data: Partial<LanguageDetail>) => Promise<void>;
 }
 
 const EMPTY_GRAPH: GraphResponse = {
@@ -223,6 +224,16 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
     setVisibleNodeIds(new Set(graph.nodes.map((node) => node.id)));
   }, [graph.nodes]);
 
+  const updateLanguageData = useCallback(
+    async (id: string, data: Partial<LanguageDetail>) => {
+      const updated = await updateLanguage(id, data);
+      setDetailCache((current) => ({ ...current, [id]: updated }));
+      setSelectedLanguage(updated);
+      await reloadGraph();
+    },
+    [reloadGraph],
+  );
+
   const value = useMemo<GraphContextValue>(
     () => ({
       graph,
@@ -256,6 +267,7 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
       closeLanguage,
       resetFilters,
       reloadGraph,
+      updateLanguage: updateLanguageData,
     }),
     [
       graph,
@@ -272,6 +284,7 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
       closeLanguage,
       resetFilters,
       reloadGraph,
+      updateLanguageData,
     ],
   );
 

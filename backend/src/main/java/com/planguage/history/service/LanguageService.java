@@ -7,13 +7,18 @@ import com.planguage.history.entity.Creator;
 import com.planguage.history.entity.Language;
 import com.planguage.history.entity.Paradigm;
 import com.planguage.history.repository.ConnectionRepository;
+import com.planguage.history.repository.CreatorRepository;
 import com.planguage.history.repository.LanguageRepository;
+import com.planguage.history.repository.ParadigmRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +31,8 @@ public class LanguageService {
 
     private final LanguageRepository languageRepository;
     private final ConnectionRepository connectionRepository;
+    private final CreatorRepository creatorRepository;
+    private final ParadigmRepository paradigmRepository;
 
     /**
      * Fetch a language by ID and transform it into a full detail DTO,
@@ -34,6 +41,60 @@ public class LanguageService {
     public Optional<LanguageDetailDTO> getLanguageDetail(String id) {
         return languageRepository.findById(id)
                 .map(this::toDetailDTO);
+    }
+
+    /**
+     * Update an existing language and its associations (creators, paradigms).
+     */
+    @Transactional
+    public Optional<LanguageDetailDTO> updateLanguage(String id, LanguageDetailDTO dto) {
+        return languageRepository.findById(id).map(language -> {
+            language.setName(dto.getName());
+            language.setReleaseDate(dto.getReleaseDate());
+            language.setWebsite(dto.getWebsite());
+            language.setDescription(dto.getDescription());
+            language.setCodeSnippet(dto.getCodeSnippet());
+            language.setUpdatedAt(LocalDateTime.now());
+
+            // Update Paradigms
+            Set<Paradigm> updatedParadigms = new HashSet<>();
+            if (dto.getParadigms() != null) {
+                for (String pName : dto.getParadigms()) {
+                    if (pName != null && !pName.trim().isEmpty()) {
+                        String cleanName = pName.trim();
+                        Paradigm paradigm = paradigmRepository.findByNameIgnoreCase(cleanName)
+                                .orElseGet(() -> {
+                                    Paradigm newP = new Paradigm();
+                                    newP.setName(cleanName);
+                                    return paradigmRepository.save(newP);
+                                });
+                        updatedParadigms.add(paradigm);
+                    }
+                }
+            }
+            language.setParadigms(updatedParadigms);
+
+            // Update Creators
+            Set<Creator> updatedCreators = new HashSet<>();
+            if (dto.getCreators() != null) {
+                for (String cName : dto.getCreators()) {
+                    if (cName != null && !cName.trim().isEmpty()) {
+                        String cleanName = cName.trim();
+                        Creator creator = creatorRepository.findByNameIgnoreCase(cleanName)
+                                .orElseGet(() -> {
+                                    Creator newC = new Creator();
+                                    newC.setName(cleanName);
+                                    return creatorRepository.save(newC);
+                                });
+                        updatedCreators.add(creator);
+                    }
+                }
+            }
+            language.setCreators(updatedCreators);
+
+            Language saved = languageRepository.save(language);
+            return toDetailDTO(saved);
+        });
     }
 
     /**

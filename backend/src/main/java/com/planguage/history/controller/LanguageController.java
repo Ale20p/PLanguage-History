@@ -31,6 +31,17 @@ public class LanguageController {
     }
 
     /**
+     * PUT /api/v1/languages/{id}
+     * Updates an existing language and returns the updated details.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<LanguageDetailDTO> updateLanguage(@PathVariable String id, @RequestBody LanguageDetailDTO dto) {
+        return languageService.updateLanguage(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
      * GET /api/v1/languages/search?q=&paradigm=&era=
      * Returns filtered list of language summaries.
      */

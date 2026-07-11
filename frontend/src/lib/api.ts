@@ -81,3 +81,13 @@ export function searchLanguages(filters: GraphFilters) {
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
 }
+
+export function updateLanguage(id: string, data: Partial<LanguageDetail>) {
+  return request<LanguageDetail>(`/languages/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+}

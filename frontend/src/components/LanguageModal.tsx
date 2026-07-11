@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGraph } from "@/context/GraphContext";
 import { CodeBlock } from "@/components/CodeBlock";
 import { ParadigmTag } from "@/components/ParadigmTag";
@@ -69,8 +69,33 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
 }
 
 export function LanguageModal() {
-  const { closeLanguage, detailStatus, selectedLanguage } = useGraph();
+  const { closeLanguage, detailStatus, selectedLanguage, updateLanguage } = useGraph();
   const isOpen = selectedLanguage !== null || detailStatus === "loading";
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState("");
+  const [releaseDate, setReleaseDate] = useState("");
+  const [website, setWebsite] = useState("");
+  const [description, setDescription] = useState("");
+  const [codeSnippet, setCodeSnippet] = useState("");
+  const [paradigmsText, setParadigmsText] = useState("");
+  const [creatorsText, setCreatorsText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedLanguage) {
+      setName(selectedLanguage.name);
+      setReleaseDate(selectedLanguage.releaseDate || "");
+      setWebsite(selectedLanguage.website || "");
+      setDescription(selectedLanguage.description || "");
+      setCodeSnippet(selectedLanguage.codeSnippet || "");
+      setParadigmsText(selectedLanguage.paradigms.join(", "));
+      setCreatorsText(selectedLanguage.creators.join(", "));
+      setIsEditing(false);
+      setSaveError(null);
+    }
+  }, [selectedLanguage]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -78,7 +103,7 @@ export function LanguageModal() {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !saving) {
         closeLanguage();
       }
     };
@@ -86,7 +111,46 @@ export function LanguageModal() {
     window.addEventListener("keydown", onKeyDown);
 
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeLanguage, isOpen]);
+  }, [closeLanguage, isOpen, saving]);
+
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedLanguage) {
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
+
+    const parsedParadigms = paradigmsText
+      .split(",")
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    const parsedCreators = creatorsText
+      .split(",")
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0);
+
+    try {
+      await updateLanguage(selectedLanguage.id, {
+        name: name.trim(),
+        releaseDate,
+        website: website.trim(),
+        description: description.trim(),
+        codeSnippet: codeSnippet.trim(),
+        paradigms: parsedParadigms,
+        creators: parsedCreators,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "Failed to save language details."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -96,7 +160,7 @@ export function LanguageModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={closeLanguage}
+          onClick={saving ? undefined : closeLanguage}
         >
           <motion.article
             className="glass-modal grid max-h-[88vh] w-full max-w-5xl overflow-hidden lg:grid-cols-[0.42fr_0.58fr]"
@@ -125,7 +189,147 @@ export function LanguageModal() {
               </div>
             ) : null}
 
-            {selectedLanguage ? (
+            {selectedLanguage && isEditing ? (
+              <form onSubmit={handleSave} className="col-span-full flex flex-col min-h-0 overflow-y-auto p-6 max-h-[88vh]">
+                <div className="mb-6 flex items-center justify-between border-b border-black/10 pb-4">
+                  <h2 className="text-2xl font-semibold text-slate-800">
+                    Edit {selectedLanguage.name}
+                  </h2>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(false)}
+                      className="liquid-button border-slate-300 hover:border-slate-400 bg-slate-100/60 hover:bg-slate-200/80 !h-9 !py-0 !px-3 !min-h-0 font-medium"
+                      disabled={saving}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="liquid-button border-cyan-600 bg-cyan-600 hover:bg-cyan-700 text-white font-medium shadow-cyan-600/10 shadow-lg !h-9 !py-0 !px-4 !min-h-0"
+                      disabled={saving}
+                    >
+                      {saving ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </div>
+
+                {saveError ? (
+                  <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    {saveError}
+                  </div>
+                ) : null}
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="edit-name" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                      Language Name *
+                    </label>
+                    <input
+                      id="edit-name"
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="h-11 rounded-xl border border-black/10 bg-white/25 px-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20"
+                      placeholder="e.g. Python"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="edit-release-date" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                      Release Date *
+                    </label>
+                    <input
+                      id="edit-release-date"
+                      type="date"
+                      required
+                      value={releaseDate}
+                      onChange={(e) => setReleaseDate(e.target.value)}
+                      className="h-11 rounded-xl border border-black/10 bg-white/25 px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
+                    <label htmlFor="edit-website" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                      Website URL
+                    </label>
+                    <input
+                      id="edit-website"
+                      type="url"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      className="h-11 rounded-xl border border-black/10 bg-white/25 px-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20"
+                      placeholder="e.g. https://www.python.org"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="edit-paradigms" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                      Paradigms (comma separated)
+                    </label>
+                    <input
+                      id="edit-paradigms"
+                      type="text"
+                      value={paradigmsText}
+                      onChange={(e) => setParadigmsText(e.target.value)}
+                      className="h-11 rounded-xl border border-black/10 bg-white/25 px-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20"
+                      placeholder="e.g. Multi-paradigm, Object-oriented, Functional"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="edit-creators" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                      Creators (comma separated)
+                    </label>
+                    <input
+                      id="edit-creators"
+                      type="text"
+                      value={creatorsText}
+                      onChange={(e) => setCreatorsText(e.target.value)}
+                      className="h-11 rounded-xl border border-black/10 bg-white/25 px-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20"
+                      placeholder="e.g. Guido van Rossum"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
+                    <label htmlFor="edit-description" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                      Description *
+                    </label>
+                    <textarea
+                      id="edit-description"
+                      required
+                      rows={4}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="rounded-xl border border-black/10 bg-white/25 p-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y"
+                      placeholder="Provide background context and features of the language..."
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
+                    <label htmlFor="edit-code" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                      Code Snippet
+                    </label>
+                    <textarea
+                      id="edit-code"
+                      rows={6}
+                      value={codeSnippet}
+                      onChange={(e) => setCodeSnippet(e.target.value)}
+                      className="rounded-xl border border-black/10 bg-white/25 p-4 font-mono text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y"
+                      placeholder='e.g. print("Hello, World!")'
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+              </form>
+            ) : selectedLanguage ? (
               <>
                 <aside className="border-b border-black/10 p-6 lg:border-b-0 lg:border-r">
                   <div className="mb-6 flex items-start justify-between gap-4">
@@ -137,15 +341,28 @@ export function LanguageModal() {
                         {selectedLanguage.name}
                       </h2>
                     </div>
-                    <button
-                      type="button"
-                      className="icon-button"
-                      onClick={closeLanguage}
-                      aria-label="Close language details"
-                      title="Close"
-                    >
-                      x
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="liquid-button border-cyan-600/20 bg-cyan-50/40 text-cyan-800 hover:bg-cyan-100/50 !h-[2.35rem] !py-0 !px-3 !min-h-0 flex items-center gap-1.5 text-xs font-medium"
+                        title="Edit Language details"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"></path>
+                        </svg>
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-button"
+                        onClick={closeLanguage}
+                        aria-label="Close language details"
+                        title="Close"
+                      >
+                        x
+                      </button>
+                    </div>
                   </div>
 
                   <dl className="space-y-5 text-sm">
