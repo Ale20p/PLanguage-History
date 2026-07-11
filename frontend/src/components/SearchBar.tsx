@@ -9,13 +9,53 @@ const ERA_OPTIONS = ["1950s", "1960s", "1970s", "1980s", "1990s", "2000s"];
 export function SearchBar() {
   const { filters, paradigms, setEra, setParadigm, setQuery } = useGraph();
 
-  const paradigmOptions = useMemo(
-    () =>
-      Array.from(new Set([...PARADIGM_OPTIONS, ...paradigms])).sort((a, b) =>
-        a.localeCompare(b),
-      ),
-    [paradigms],
-  );
+  const groupedOptions = useMemo(() => {
+    const allOptions = Array.from(new Set([...PARADIGM_OPTIONS, ...paradigms]));
+
+    const groups: Record<string, string[]> = {
+      "Language Paradigms": [],
+      "Frameworks": [],
+      "Libraries": [],
+      "Other Categories": [],
+    };
+
+    const categoryMapping: Record<string, string> = {
+      "Object-Oriented": "Language Paradigms",
+      "Functional": "Language Paradigms",
+      "Procedural": "Language Paradigms",
+      "Imperative": "Language Paradigms",
+      "Multi-Paradigm": "Language Paradigms",
+      "Systems": "Language Paradigms",
+      "Scripting": "Language Paradigms",
+      "Logic": "Language Paradigms",
+      "Concurrent": "Language Paradigms",
+      "Generic": "Language Paradigms",
+      "Component-Based": "Frameworks",
+      "Frameworks -> Component-Based": "Frameworks",
+      "MVC": "Frameworks",
+      "MVC (Model-View-Controller)": "Frameworks",
+      "Frameworks -> MVC": "Frameworks",
+      "Micro-Framework": "Frameworks",
+      "Frameworks -> Micro-Framework": "Frameworks",
+      "State Management": "Libraries",
+      "Libraries -> State Management": "Libraries",
+      "Utility": "Libraries",
+      "Libraries -> Utility": "Libraries",
+      "Testing": "Libraries",
+      "Libraries -> Testing": "Libraries",
+    };
+
+    allOptions.forEach((opt) => {
+      const groupName = categoryMapping[opt] || "Other Categories";
+      groups[groupName].push(opt);
+    });
+
+    Object.keys(groups).forEach((key) => {
+      groups[key].sort((a, b) => a.localeCompare(b));
+    });
+
+    return groups;
+  }, [paradigms]);
 
   return (
     <section className="pointer-events-none fixed left-0 right-0 top-24 z-20 px-4 sm:px-6 lg:px-8">
@@ -39,14 +79,21 @@ export function SearchBar() {
           id="paradigm-filter"
           value={filters.paradigm}
           onChange={(event) => setParadigm(event.target.value)}
-          className="h-12 min-w-0 rounded-full border border-black/10 bg-transparent px-4 text-sm text-slate-800 outline-none transition focus:border-violet-600/60 focus:ring-2 focus:ring-violet-600/20"
+          className="h-12 min-w-0 rounded-full border border-black/10 bg-transparent px-4 text-sm text-slate-800 outline-none transition focus:border-violet-600/60 focus:ring-2 focus:ring-violet-600/20 cursor-pointer"
         >
-          <option value="">All paradigms</option>
-          {paradigmOptions.map((paradigm) => (
-            <option key={paradigm} value={paradigm}>
-              {paradigm}
-            </option>
-          ))}
+          <option value="">All paradigms & categories</option>
+          {Object.entries(groupedOptions).map(([groupName, items]) => {
+            if (items.length === 0) return null;
+            return (
+              <optgroup key={groupName} label={groupName}>
+                {items.map((item) => (
+                  <option key={item} value={item}>
+                    {item.replace(/^(Frameworks|Libraries)\s*->\s*/i, "")}
+                  </option>
+                ))}
+              </optgroup>
+            );
+          })}
         </select>
 
         <label className="sr-only" htmlFor="era-filter">

@@ -11,6 +11,12 @@ export const PARADIGM_OPTIONS = [
   "Logic",
   "Concurrent",
   "Generic",
+  "Frameworks -> Component-Based",
+  "Frameworks -> MVC",
+  "Frameworks -> Micro-Framework",
+  "Libraries -> State Management",
+  "Libraries -> Utility",
+  "Libraries -> Testing",
 ] as const;
 
 const PARADIGM_ACCENTS: Record<string, string> = {
@@ -25,6 +31,18 @@ const PARADIGM_ACCENTS: Record<string, string> = {
   logic: "#EC4899",
   concurrent: "#14B8A6",
   generic: "#F97316",
+  "frameworks -> component-based": "#E11D48",
+  "component-based": "#E11D48",
+  "frameworks -> mvc": "#2563EB",
+  "mvc": "#2563EB",
+  "frameworks -> micro-framework": "#10B981",
+  "micro-framework": "#10B981",
+  "libraries -> state management": "#8B5CF6",
+  "state management": "#8B5CF6",
+  "libraries -> utility": "#D97706",
+  "utility": "#D97706",
+  "libraries -> testing": "#DB2777",
+  "testing": "#DB2777",
   unknown: DEFAULT_ACCENT,
 };
 
