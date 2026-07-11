@@ -1,5 +1,6 @@
 "use client";
 
+import { AddLanguageModal } from "@/components/AddLanguageModal";
 import { ForceGraph } from "@/components/ForceGraph";
 import { Header } from "@/components/Header";
 import { LanguageModal } from "@/components/LanguageModal";
@@ -53,6 +54,7 @@ function ExplorerCanvas() {
       <ForceGraph />
       <GraphStatusOverlay />
       <LanguageModal />
+      <AddLanguageModal />
     </main>
   );
 }

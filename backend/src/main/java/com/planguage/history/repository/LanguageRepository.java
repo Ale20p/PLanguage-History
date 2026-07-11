@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for Language entities with custom search and filter queries.
@@ -40,4 +41,9 @@ public interface LanguageRepository extends JpaRepository<Language, String> {
            "WHERE LOWER(l.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "AND LOWER(p.name) = LOWER(:paradigm)")
     List<Language> searchByNameAndParadigm(@Param("query") String query, @Param("paradigm") String paradigm);
+
+    /**
+     * Find a language by its exact name, case-insensitively.
+     */
+    Optional<Language> findByNameIgnoreCase(String name);
 }

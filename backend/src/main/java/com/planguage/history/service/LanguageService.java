@@ -3,6 +3,7 @@ package com.planguage.history.service;
 import com.planguage.history.dto.LanguageDetailDTO;
 import com.planguage.history.dto.LanguageSummaryDTO;
 import com.planguage.history.entity.Connection;
+import com.planguage.history.entity.ConnectionType;
 import com.planguage.history.entity.Creator;
 import com.planguage.history.entity.Language;
 import com.planguage.history.entity.Paradigm;
@@ -96,6 +97,110 @@ public class LanguageService {
             return toDetailDTO(saved);
         });
     }
+
+    /**
+     * Create a new language, set up its associations, and link influences/influenced.
+     */
+    @Transactional
+    public LanguageDetailDTO createLanguage(LanguageDetailDTO dto) {
+        String generatedId = slugify(dto.getName());
+        if (languageRepository.existsById(generatedId)) {
+            throw new IllegalArgumentException("A language with name '" + dto.getName() + "' (ID: " + generatedId + ") already exists.");
+        }
+
+        Language language = new Language();
+        language.setId(generatedId);
+        language.setName(dto.getName());
+        language.setReleaseDate(dto.getReleaseDate());
+        language.setWebsite(dto.getWebsite());
+        language.setDescription(dto.getDescription());
+        language.setCodeSnippet(dto.getCodeSnippet());
+        language.setCreatedAt(LocalDateTime.now());
+        language.setUpdatedAt(LocalDateTime.now());
+
+        // Save paradigms
+        Set<Paradigm> paradigms = new HashSet<>();
+        if (dto.getParadigms() != null) {
+            for (String pName : dto.getParadigms()) {
+                if (pName != null && !pName.trim().isEmpty()) {
+                    String cleanName = pName.trim();
+                    Paradigm paradigm = paradigmRepository.findByNameIgnoreCase(cleanName)
+                            .orElseGet(() -> {
+                                Paradigm newP = new Paradigm();
+                                newP.setName(cleanName);
+                                return paradigmRepository.save(newP);
+                            });
+                    paradigms.add(paradigm);
+                }
+            }
+        }
+        language.setParadigms(paradigms);
+
+        // Save creators
+        Set<Creator> creators = new HashSet<>();
+        if (dto.getCreators() != null) {
+            for (String cName : dto.getCreators()) {
+                if (cName != null && !cName.trim().isEmpty()) {
+                    String cleanName = cName.trim();
+                    Creator creator = creatorRepository.findByNameIgnoreCase(cleanName)
+                            .orElseGet(() -> {
+                                Creator newC = new Creator();
+                                newC.setName(cleanName);
+                                return creatorRepository.save(newC);
+                            });
+                    creators.add(creator);
+                }
+            }
+        }
+        language.setCreators(creators);
+
+        Language savedLanguage = languageRepository.save(language);
+
+        // Save influences connections (incoming connections)
+        if (dto.getInfluences() != null) {
+            for (String infName : dto.getInfluences()) {
+                if (infName != null && !infName.trim().isEmpty()) {
+                    languageRepository.findByNameIgnoreCase(infName.trim()).ifPresent(sourceLang -> {
+                        Connection conn = new Connection();
+                        conn.setSource(sourceLang);
+                        conn.setTarget(savedLanguage);
+                        conn.setConnectionType(ConnectionType.INFLUENCED_BY);
+                        connectionRepository.save(conn);
+                    });
+                }
+            }
+        }
+
+        // Save influenced connections (outgoing connections)
+        if (dto.getInfluenced() != null) {
+            for (String infName : dto.getInfluenced()) {
+                if (infName != null && !infName.trim().isEmpty()) {
+                    languageRepository.findByNameIgnoreCase(infName.trim()).ifPresent(targetLang -> {
+                        Connection conn = new Connection();
+                        conn.setSource(savedLanguage);
+                        conn.setTarget(targetLang);
+                        conn.setConnectionType(ConnectionType.INFLUENCED_BY);
+                        connectionRepository.save(conn);
+                    });
+                }
+            }
+        }
+
+        return toDetailDTO(savedLanguage);
+    }
+
+    private String slugify(String name) {
+        if (name == null) {
+            return "";
+        }
+        return name.toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-$", "")
+                .trim();
+    }
+
 
     /**
      * Search and filter languages based on optional query parameters.

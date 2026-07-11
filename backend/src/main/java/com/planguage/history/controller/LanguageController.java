@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.HttpStatus;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for language detail and search endpoints.
@@ -39,6 +41,20 @@ public class LanguageController {
         return languageService.updateLanguage(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * POST /api/v1/languages
+     * Creates a new language and returns the created details.
+     */
+    @PostMapping
+    public ResponseEntity<?> createLanguage(@RequestBody LanguageDetailDTO dto) {
+        try {
+            LanguageDetailDTO created = languageService.createLanguage(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**

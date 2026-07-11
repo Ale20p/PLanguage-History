@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { getGraph, getLanguageDetail, searchLanguages, updateLanguage } from "@/lib/api";
+import { createLanguage, getGraph, getLanguageDetail, searchLanguages, updateLanguage } from "@/lib/api";
 import type {
   GraphFilters,
   GraphResponse,
@@ -39,6 +39,10 @@ interface GraphContextValue {
   resetFilters: () => void;
   reloadGraph: () => Promise<void>;
   updateLanguage: (id: string, data: Partial<LanguageDetail>) => Promise<void>;
+  isAddModalOpen: boolean;
+  openAddLanguage: () => void;
+  closeAddLanguage: () => void;
+  createLanguage: (data: Partial<LanguageDetail>) => Promise<void>;
 }
 
 const EMPTY_GRAPH: GraphResponse = {
@@ -98,6 +102,7 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
   const [detailCache, setDetailCache] = useState<Record<string, LanguageDetail>>(
     {},
   );
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const reloadGraph = useCallback(async () => {
     setStatus("loading");
@@ -234,6 +239,23 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
     [reloadGraph],
   );
 
+  const openAddLanguage = useCallback(() => {
+    setIsAddModalOpen(true);
+  }, []);
+
+  const closeAddLanguage = useCallback(() => {
+    setIsAddModalOpen(false);
+  }, []);
+
+  const createLanguageData = useCallback(
+    async (data: Partial<LanguageDetail>) => {
+      await createLanguage(data);
+      await reloadGraph();
+      setIsAddModalOpen(false);
+    },
+    [reloadGraph],
+  );
+
   const value = useMemo<GraphContextValue>(
     () => ({
       graph,
@@ -268,6 +290,10 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
       resetFilters,
       reloadGraph,
       updateLanguage: updateLanguageData,
+      isAddModalOpen,
+      openAddLanguage,
+      closeAddLanguage,
+      createLanguage: createLanguageData,
     }),
     [
       graph,
@@ -285,6 +311,10 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
       resetFilters,
       reloadGraph,
       updateLanguageData,
+      isAddModalOpen,
+      openAddLanguage,
+      closeAddLanguage,
+      createLanguageData,
     ],
   );
 

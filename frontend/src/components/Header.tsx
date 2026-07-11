@@ -3,7 +3,7 @@
 import { useGraph } from "@/context/GraphContext";
 
 export function Header() {
-  const { graph, resultCount, status, resetFilters } = useGraph();
+  const { graph, resultCount, status, resetFilters, openAddLanguage } = useGraph();
 
   return (
     <header className="pointer-events-none fixed left-0 right-0 top-0 z-20 px-4 py-4 sm:px-6 lg:px-8">
@@ -31,6 +31,14 @@ export function Header() {
             title="Reset filters"
           >
             Reset
+          </button>
+          <button
+            type="button"
+            className="liquid-button border-cyan-600 bg-cyan-600 hover:bg-cyan-700 text-white font-medium shadow-cyan-600/10 shadow-lg"
+            onClick={openAddLanguage}
+            title="Add new language"
+          >
+            Add Language
           </button>
         </div>
       </div>

@@ -91,3 +91,13 @@ export function updateLanguage(id: string, data: Partial<LanguageDetail>) {
     body: JSON.stringify(data),
   });
 }
+
+export function createLanguage(data: Partial<LanguageDetail>) {
+  return request<LanguageDetail>("/languages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+}
