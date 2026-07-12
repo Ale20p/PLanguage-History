@@ -43,6 +43,8 @@ interface GraphContextValue {
   openAddLanguage: () => void;
   closeAddLanguage: () => void;
   createLanguage: (data: Partial<LanguageDetail>) => Promise<void>;
+  traceNodeId: string | null;
+  setTraceNodeId: (id: string | null) => void;
 }
 
 const EMPTY_GRAPH: GraphResponse = {
@@ -103,6 +105,7 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
     {},
   );
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [traceNodeId, setTraceNodeId] = useState<string | null>(null);
 
   const reloadGraph = useCallback(async () => {
     setStatus("loading");
@@ -176,15 +179,48 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
     return () => window.clearTimeout(timeout);
   }, [filters, graph.nodes, status]);
 
+  const connectedNodeIds = useMemo(() => {
+    if (!traceNodeId) {
+      return null;
+    }
+
+    const visited = new Set<string>();
+    const queue: string[] = [traceNodeId];
+    visited.add(traceNodeId);
+
+    const adj = new Map<string, string[]>();
+    graph.links.forEach((link) => {
+      const u = getLinkEndpoint(link.source);
+      const v = getLinkEndpoint(link.target);
+      if (!adj.has(u)) adj.set(u, []);
+      if (!adj.has(v)) adj.set(v, []);
+      adj.get(u)!.push(v);
+      adj.get(v)!.push(u);
+    });
+
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      const neighbors = adj.get(curr) || [];
+      neighbors.forEach((neigh) => {
+        if (!visited.has(neigh)) {
+          visited.add(neigh);
+          queue.push(neigh);
+        }
+      });
+    }
+
+    return visited;
+  }, [graph.links, traceNodeId]);
+
   const filteredGraph = useMemo(() => {
-    const ids = visibleNodeIds ?? new Set(graph.nodes.map((node) => node.id));
+    const ids = connectedNodeIds ?? (visibleNodeIds ?? new Set(graph.nodes.map((node) => node.id)));
     const nodes = graph.nodes.filter((node) => ids.has(node.id));
 
     return {
       nodes,
       links: filterLinks(graph.links, ids),
     };
-  }, [graph.links, graph.nodes, visibleNodeIds]);
+  }, [graph.links, graph.nodes, visibleNodeIds, connectedNodeIds]);
 
   const paradigms = useMemo(
     () =>
@@ -226,6 +262,7 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
 
   const resetFilters = useCallback(() => {
     setFilters(INITIAL_FILTERS);
+    setTraceNodeId(null);
     setVisibleNodeIds(new Set(graph.nodes.map((node) => node.id)));
   }, [graph.nodes]);
 
@@ -294,6 +331,8 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
       openAddLanguage,
       closeAddLanguage,
       createLanguage: createLanguageData,
+      traceNodeId,
+      setTraceNodeId,
     }),
     [
       graph,
@@ -315,6 +354,7 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
       openAddLanguage,
       closeAddLanguage,
       createLanguageData,
+      traceNodeId,
     ],
   );
 

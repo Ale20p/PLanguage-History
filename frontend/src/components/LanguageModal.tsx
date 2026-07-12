@@ -70,7 +70,7 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
 }
 
 export function LanguageModal() {
-  const { closeLanguage, detailStatus, selectedLanguage, updateLanguage, graph } = useGraph();
+  const { closeLanguage, detailStatus, selectedLanguage, updateLanguage, graph, setTraceNodeId } = useGraph();
   const isOpen = selectedLanguage !== null || detailStatus === "loading";
 
   const [isEditing, setIsEditing] = useState(false);
@@ -455,6 +455,28 @@ export function LanguageModal() {
                       </h2>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTraceNodeId(selectedLanguage.id);
+                          closeLanguage();
+                        }}
+                        className="liquid-button border-cyan-600 bg-cyan-600 hover:bg-cyan-700 text-white !h-[2.35rem] !py-0 !px-3 !min-h-0 flex items-center gap-1.5 text-xs font-semibold shadow-cyan-600/10 shadow-lg"
+                        title="Trace connected lineage"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="3" />
+                          <circle cx="6" cy="6" r="2.5" />
+                          <circle cx="18" cy="6" r="2.5" />
+                          <circle cx="6" cy="18" r="2.5" />
+                          <circle cx="18" cy="18" r="2.5" />
+                          <line x1="9.5" y1="9.5" x2="7.5" y2="7.5" />
+                          <line x1="14.5" y1="9.5" x2="16.5" y2="7.5" />
+                          <line x1="9.5" y1="14.5" x2="7.5" y2="16.5" />
+                          <line x1="14.5" y1="14.5" x2="16.5" y2="16.5" />
+                        </svg>
+                        Trace
+                      </button>
                       <button
                         type="button"
                         onClick={() => setIsEditing(true)}
