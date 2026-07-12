@@ -389,7 +389,7 @@ export function AddLanguageModal() {
                     rows={4}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="rounded-xl border border-black/10 bg-white/25 p-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y"
+                    className="rounded-xl border border-black/10 bg-white/25 p-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y custom-scrollbar"
                     placeholder="Provide description and features of the language..."
                     disabled={saving}
                   />
@@ -404,7 +404,7 @@ export function AddLanguageModal() {
                     rows={6}
                     value={codeSnippet}
                     onChange={(e) => setCodeSnippet(e.target.value)}
-                    className="rounded-xl border border-black/10 bg-white/25 p-4 font-mono text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y"
+                    className="rounded-xl border border-black/10 bg-white/25 p-4 font-mono text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y custom-scrollbar"
                     placeholder='e.g. fn main() { println!("Hello, World!"); }'
                     disabled={saving}
                   />

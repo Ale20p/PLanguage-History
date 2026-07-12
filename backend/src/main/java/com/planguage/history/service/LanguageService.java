@@ -94,6 +94,41 @@ public class LanguageService {
             language.setCreators(updatedCreators);
 
             Language saved = languageRepository.save(language);
+
+            // Update influences connections (incoming)
+            List<Connection> existingIncoming = connectionRepository.findByTargetId(saved.getId());
+            connectionRepository.deleteAll(existingIncoming);
+            if (dto.getInfluences() != null) {
+                for (String infName : dto.getInfluences()) {
+                    if (infName != null && !infName.trim().isEmpty()) {
+                        languageRepository.findByNameIgnoreCase(infName.trim()).ifPresent(sourceLang -> {
+                            Connection conn = new Connection();
+                            conn.setSource(sourceLang);
+                            conn.setTarget(saved);
+                            conn.setConnectionType(ConnectionType.INFLUENCED_BY);
+                            connectionRepository.save(conn);
+                        });
+                    }
+                }
+            }
+
+            // Update influenced connections (outgoing)
+            List<Connection> existingOutgoing = connectionRepository.findBySourceId(saved.getId());
+            connectionRepository.deleteAll(existingOutgoing);
+            if (dto.getInfluenced() != null) {
+                for (String infName : dto.getInfluenced()) {
+                    if (infName != null && !infName.trim().isEmpty()) {
+                        languageRepository.findByNameIgnoreCase(infName.trim()).ifPresent(targetLang -> {
+                            Connection conn = new Connection();
+                            conn.setSource(saved);
+                            conn.setTarget(targetLang);
+                            conn.setConnectionType(ConnectionType.INFLUENCED_BY);
+                            connectionRepository.save(conn);
+                        });
+                    }
+                }
+            }
+
             return toDetailDTO(saved);
         });
     }

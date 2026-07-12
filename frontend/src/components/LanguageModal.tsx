@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { useEffect, useState } from "react";
+import { marked } from "marked";
 import { useGraph } from "@/context/GraphContext";
 import { CodeBlock } from "@/components/CodeBlock";
 import { ParadigmTag } from "@/components/ParadigmTag";
@@ -69,7 +70,7 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
 }
 
 export function LanguageModal() {
-  const { closeLanguage, detailStatus, selectedLanguage, updateLanguage } = useGraph();
+  const { closeLanguage, detailStatus, selectedLanguage, updateLanguage, graph } = useGraph();
   const isOpen = selectedLanguage !== null || detailStatus === "loading";
 
   const [isEditing, setIsEditing] = useState(false);
@@ -80,8 +81,36 @@ export function LanguageModal() {
   const [codeSnippet, setCodeSnippet] = useState("");
   const [paradigmsText, setParadigmsText] = useState("");
   const [creatorsText, setCreatorsText] = useState("");
+  const [influencesText, setInfluencesText] = useState("");
+  const [influencedText, setInfluencedText] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  const handleAddInfluence = (langName: string) => {
+    const currentList = influencesText
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+    
+    if (!currentList.includes(langName)) {
+      currentList.push(langName);
+      setInfluencesText(currentList.join(", "));
+    }
+  };
+
+  const handleAddInfluenced = (langName: string) => {
+    const currentList = influencedText
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+    
+    if (!currentList.includes(langName)) {
+      currentList.push(langName);
+      setInfluencedText(currentList.join(", "));
+    }
+  };
+
+  const availableLanguages = [...graph.nodes].sort((a, b) => a.name.localeCompare(b.name));
 
   useEffect(() => {
     if (selectedLanguage) {
@@ -92,6 +121,8 @@ export function LanguageModal() {
       setCodeSnippet(selectedLanguage.codeSnippet || "");
       setParadigmsText(selectedLanguage.paradigms.join(", "));
       setCreatorsText(selectedLanguage.creators.join(", "));
+      setInfluencesText(selectedLanguage.influences.join(", "));
+      setInfluencedText(selectedLanguage.influenced.join(", "));
       setIsEditing(false);
       setSaveError(null);
     }
@@ -132,6 +163,16 @@ export function LanguageModal() {
       .map((c) => c.trim())
       .filter((c) => c.length > 0);
 
+    const parsedInfluences = influencesText
+      .split(",")
+      .map((i) => i.trim())
+      .filter((i) => i.length > 0);
+
+    const parsedInfluenced = influencedText
+      .split(",")
+      .map((i) => i.trim())
+      .filter((i) => i.length > 0);
+
     try {
       await updateLanguage(selectedLanguage.id, {
         name: name.trim(),
@@ -141,6 +182,8 @@ export function LanguageModal() {
         codeSnippet: codeSnippet.trim(),
         paradigms: parsedParadigms,
         creators: parsedCreators,
+        influences: parsedInfluences,
+        influenced: parsedInfluenced,
       });
       setIsEditing(false);
     } catch (error) {
@@ -298,6 +341,76 @@ export function LanguageModal() {
                   </div>
 
                   <div className="flex flex-col gap-1.5 md:col-span-2">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="edit-influences" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                        Influenced By (comma separated)
+                      </label>
+                      <select
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            handleAddInfluence(val);
+                            e.target.value = "";
+                          }
+                        }}
+                        className="h-8 rounded-lg border border-black/10 bg-white/20 px-2 text-xs text-slate-700 outline-none transition focus:border-cyan-600/60 cursor-pointer"
+                        disabled={saving}
+                      >
+                        <option value="">+ Add from existing...</option>
+                        {availableLanguages.map((lang) => (
+                          <option key={lang.id} value={lang.name}>
+                            {lang.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <input
+                      id="edit-influences"
+                      type="text"
+                      value={influencesText}
+                      onChange={(e) => setInfluencesText(e.target.value)}
+                      className="h-11 rounded-xl border border-black/10 bg-white/25 px-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20"
+                      placeholder="e.g. C++, Haskell, C"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="edit-influenced" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
+                        Influenced (comma separated)
+                      </label>
+                      <select
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            handleAddInfluenced(val);
+                            e.target.value = "";
+                          }
+                        }}
+                        className="h-8 rounded-lg border border-black/10 bg-white/20 px-2 text-xs text-slate-700 outline-none transition focus:border-cyan-600/60 cursor-pointer"
+                        disabled={saving}
+                      >
+                        <option value="">+ Add from existing...</option>
+                        {availableLanguages.map((lang) => (
+                          <option key={lang.id} value={lang.name}>
+                            {lang.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <input
+                      id="edit-influenced"
+                      type="text"
+                      value={influencedText}
+                      onChange={(e) => setInfluencedText(e.target.value)}
+                      className="h-11 rounded-xl border border-black/10 bg-white/25 px-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20"
+                      placeholder="e.g. Swift"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
                     <label htmlFor="edit-description" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 font-sans">
                       Description *
                     </label>
@@ -307,7 +420,7 @@ export function LanguageModal() {
                       rows={4}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="rounded-xl border border-black/10 bg-white/25 p-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y"
+                      className="rounded-xl border border-black/10 bg-white/25 p-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y custom-scrollbar"
                       placeholder="Provide background context and features of the language..."
                       disabled={saving}
                     />
@@ -322,7 +435,7 @@ export function LanguageModal() {
                       rows={6}
                       value={codeSnippet}
                       onChange={(e) => setCodeSnippet(e.target.value)}
-                      className="rounded-xl border border-black/10 bg-white/25 p-4 font-mono text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y"
+                      className="rounded-xl border border-black/10 bg-white/25 p-4 font-mono text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-cyan-600/60 focus:bg-white/[0.45] focus:ring-2 focus:ring-cyan-600/20 resize-y custom-scrollbar"
                       placeholder='e.g. print("Hello, World!")'
                       disabled={saving}
                     />
@@ -409,9 +522,10 @@ export function LanguageModal() {
                       <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Background
                       </h3>
-                      <p className="text-sm leading-7 text-slate-700">
-                        {selectedLanguage.description}
-                      </p>
+                      <div
+                        className="max-h-[320px] overflow-y-auto pr-2 text-sm leading-7 text-slate-700 custom-scrollbar markdown-content"
+                        dangerouslySetInnerHTML={{ __html: marked.parse(selectedLanguage.description) as string }}
+                      />
                     </div>
 
                     <CodeBlock
