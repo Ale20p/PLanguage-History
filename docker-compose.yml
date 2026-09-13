@@ -20,5 +20,30 @@ services:
       timeout: 5s
       retries: 5
 
+  compiler-daemon:
+    build:
+      context: ./services/compiler-daemon
+      dockerfile: Dockerfile
+    image: planguage-compiler-daemon:latest
+    container_name: planguage-compiler-daemon
+    restart: unless-stopped
+    ports:
+      - "50051:50051"
+    environment:
+      - COMPILER_PORT=50051
+    tmpfs:
+      - /tmp:exec,mode=1777,size=128M
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 50051 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
 volumes:
   pgdata:

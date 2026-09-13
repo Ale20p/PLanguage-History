@@ -92,6 +92,35 @@ export function updateLanguage(id: string, data: Partial<LanguageDetail>) {
   });
 }
 
+export interface ExecuteCodePayload {
+  languageId: string;
+  sourceCode: string;
+  compilerFlags?: string[];
+  stdinInput?: string;
+  timeoutMs?: number;
+}
+
+export interface ExecuteCodeResult {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+  compileTimeMs: number;
+  executionTimeMs: number;
+  peakMemoryBytes: number;
+  timedOut: boolean;
+  cached: boolean;
+}
+
+export function executeCode(payload: ExecuteCodePayload) {
+  return request<ExecuteCodeResult>("/compiler/execute", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
 export function createLanguage(data: Partial<LanguageDetail>) {
   return request<LanguageDetail>("/languages", {
     method: "POST",

@@ -38,3 +38,13 @@ management:
     health:
       probes:
         enabled: true
+
+compiler:
+  daemon:
+    host: ${COMPILER_DAEMON_HOST:localhost}
+    port: ${COMPILER_DAEMON_PORT:50051}
+  cache:
+    enabled: ${COMPILER_CACHE_ENABLED:true}
+    ttl-seconds: 3600
+  rate-limit:
+    max-requests-per-minute: 15

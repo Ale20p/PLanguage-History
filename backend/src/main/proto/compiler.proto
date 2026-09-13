@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package com.planguage.history.compiler;
+
+option java_multiple_files = true;
+option java_package = "com.planguage.history.compiler.grpc";
+
+// gRPC microservice managing sandboxed compilation and execution of untrusted user code
+service ExecutionService {
+  // Synchronously compile and execute code, returning complete output metrics
+  rpc ExecuteCode (ExecutionRequest) returns (ExecutionResponse);
+
+  // Stream execution events (status updates, stdout, stderr) in real time
+  rpc StreamExecution (ExecutionRequest) returns (stream ExecutionChunk);
+}
+
+message ExecutionRequest {
+  string language_id = 1;
+  string source_code = 2;
+  repeated string compiler_flags = 3;
+  string stdin_input = 4;
+  int32 timeout_ms = 5;
+}
+
+message ExecutionResponse {
+  int32 exit_code = 1;
+  string stdout = 2;
+  string stderr = 3;
+  int64 compile_time_ms = 4;
+  int64 execution_time_ms = 5;
+  int64 peak_memory_bytes = 6;
+  bool timed_out = 7;
+}
+
+message ExecutionChunk {
+  enum OutputType {
+    STDOUT = 0;
+    STDERR = 1;
+    STATUS = 2;
+  }
+  OutputType type = 1;
+  bytes data = 2;
+}

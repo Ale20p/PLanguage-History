@@ -553,6 +553,7 @@ export function LanguageModal() {
                     <CodeBlock
                       code={selectedLanguage.codeSnippet}
                       label={`${selectedLanguage.name} snippet`}
+                      languageId={selectedLanguage.id}
                     />
 
                     <div className="grid gap-5 md:grid-cols-2">
